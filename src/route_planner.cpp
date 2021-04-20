@@ -1,5 +1,6 @@
 #include "route_planner.h"
 #include <algorithm>
+using std::sort;
 
 RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, float end_x, float end_y): m_Model(model) {
     // Convert inputs to percentage:
@@ -8,43 +9,61 @@ RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, floa
     end_x *= 0.01;
     end_y *= 0.01;
 
-    // TODO 2: Use the m_Model.FindClosestNode method to find the closest nodes to the starting and ending coordinates.
-    // Store the nodes you find in the RoutePlanner's start_node and end_node attributes.
+    // Using FindClosestNode method to find the closest nodes to the starting and ending coordinates.
+    // Storing the nodes we find in the RoutePlanner's start_node and end_node attributes.
+
+    start_node = &model.FindClosestNode(start_x,start_y);
+    end_node   = &model.FindClosestNode(end_x,end_y);
+
 
 }
 
-
-// TODO 3: Implement the CalculateHValue method.
-// Tips:
-// - You can use the distance to the end_node for the h value.
+//Implementing the CalculateHValue method.
+// - Using distance to the end_node for the h value.
 // - Node objects have a distance method to determine the distance to another node.
 
 float RoutePlanner::CalculateHValue(RouteModel::Node const *node) {
+    return node->distance(*end_node);
 
 }
 
 
-// TODO 4: Complete the AddNeighbors method to expand the current node by adding all unvisited neighbors to the open list.
-// Tips:
-// - Use the FindNeighbors() method of the current_node to populate current_node.neighbors vector with all the neighbors.
-// - For each node in current_node.neighbors, set the parent, the h_value, the g_value. 
-// - Use CalculateHValue below to implement the h-Value calculation.
-// - For each node in current_node.neighbors, add the neighbor to open_list and set the node's visited attribute to true.
+// AddNeighbors method to expand the current node by adding all unvisited neighbors to the open list.
 
 void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
-
+  current_node->FindNeighbors();//populate current_node.neighbors vector with all the neighbors.
+  for(auto neighbour:current_node->neighbors)
+  {
+    neighbour->parent=current_node; //setting the parent
+    neighbour->g_value+=current_node->distance(*neighbour); //Calculate g_value add to current g_value 
+    neighbour->h_value=CalculateHValue(neighbour);//Using CalculateHValue below to implement the h-Value calculation.
+    neighbour->visited=true;//Setting the node's visited attribute to true
+    open_list.push_back(neighbour);
+  }
 }
 
 
-// TODO 5: Complete the NextNode method to sort the open list and return the next node.
-// Tips:
-// - Sort the open_list according to the sum of the h value and g value.
-// - Create a pointer to the node in the list with the lowest sum.
-// - Remove that node from the open_list.
-// - Return the pointer.
+ bool RoutePlanner::CompareNodes(const RouteModel::Node *a,const RouteModel::Node *b)
+{
+    float f1 = a->g_value + a->h_value;
+    float f2 = b->g_value + b->h_value;
+
+    return f1>f2;
+}
+
+// Completing the NextNode method to sort the open list and return the next node.
+
+// - Sorting the open_list according to the sum of the h value and g value.
+// - Creating a pointer to the node in the list with the lowest sum.
+// - Removing that node from the open_list.
+// - Returning the pointer.
 
 RouteModel::Node *RoutePlanner::NextNode() {
+    sort(open_list.begin(),open_list.end(),CompareNodes);
+    RouteModel::Node * lowestValueNode = open_list.back();
+    open_list.pop_back();
 
+   return lowestValueNode;
 }
 
 
