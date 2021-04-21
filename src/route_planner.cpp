@@ -34,7 +34,7 @@ void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
   for(auto neighbour:current_node->neighbors)
   {
       neighbour->parent=current_node; //setting the parent
-      neighbour->g_value+=current_node->distance(*neighbour); //Calculate g_value add to current g_value 
+      neighbour->g_value=current_node->g_value + current_node->distance(*neighbour);//Calculate g_value 
       neighbour->h_value=CalculateHValue(neighbour);//Using CalculateHValue below to implement the h-Value calculation.
       neighbour->visited=true;//Setting the node's visited attribute to true
       open_list.push_back(neighbour);
@@ -44,8 +44,8 @@ void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
 //Compare two Nodes by  the sum of the h value and g value.
  bool RoutePlanner::CompareNodes(const RouteModel::Node *a,const RouteModel::Node *b)
 {
-    float f1 = a->g_value + a->h_value*1.1;
-    float f2 = b->g_value + b->h_value*1.1 ;
+    const float f1 = a->g_value + a->h_value;
+    const float f2 = b->g_value + b->h_value;
 
     return f1>f2;
 }
